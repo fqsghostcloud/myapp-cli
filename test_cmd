@@ -1,0 +1,2 @@
+docker run -it --name test -p 8080:8080 -p 50051:50051 myapp:0.1 /myapp/run
+
