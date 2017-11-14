@@ -1,17 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"log"
 	pb "myapp/models/grpc/service/echo"
+	"os"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
 const (
-	address = "localhost:50051"
+	address = "192.168.34.134:50051"
 )
 
 func echoTimeService(c pb.EchoClient) {
@@ -35,7 +37,7 @@ func echoTimeService(c pb.EchoClient) {
 }
 
 func echoService(c pb.EchoClient) {
-
+	scan := bufio.NewReader(os.Stdin)
 	stream, err := c.EchoHello(context.Background())
 	if err != nil {
 		log.Printf("\nEcho stream error: %v\n", err)
@@ -58,12 +60,15 @@ func echoService(c pb.EchoClient) {
 	}()
 
 	for {
-		var message string
-		fmt.Scanf("%s\n", &message)
-		if len(message) > 0 {
-			if err := stream.Send(&pb.Request{Message: message}); err != nil {
-				log.Printf("Failed to send a note: %v\n", err)
-			}
+		mess, isProfix, err := scan.ReadLine()
+		if err != nil {
+			log.Fatalf("\nRead message error:%v", err)
+		} else if isProfix {
+			log.Fatalf("\n Your message out of size!")
+		}
+		message := string(mess[:])
+		if err := stream.Send(&pb.Request{Message: message}); err != nil {
+			log.Printf("Failed to send a note: %v\n", err)
 		}
 	}
 
